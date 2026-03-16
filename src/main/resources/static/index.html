@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Health &amp; Beauty Inventory</title>
+</head>
+<body>
+    <h1>Products</h1>
+    <ul id="product-list"></ul>
+
+    <h1>Low Stock Products</h1>
+    <ul id="low-stock-list"></ul>
+
+    <script>
+        fetch('/api/products')
+            .then(response => response.json())
+            .then(products => {
+                const list = document.getElementById('product-list');
+                products.forEach(product => {
+                    const li = document.createElement('li');
+                    li.textContent = `${product.name} - Price: $${product.price} - Stock: ${product.stockQuantity} - Supplier: ${product.supplier ? product.supplier.name : 'None'}`;
+                    list.appendChild(li);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+        fetch('/api/products/low-stock?threshold=10')
+            .then(response => response.json())
+            .then(products => {
+                const list = document.getElementById('low-stock-list');
+                products.forEach(product => {
+                    const li = document.createElement('li');
+                    li.textContent = `${product.name} - Price: $${product.price} - Stock: ${product.stockQuantity} - Supplier: ${product.supplier ? product.supplier.name : 'None'}`;
+                    list.appendChild(li);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>
+

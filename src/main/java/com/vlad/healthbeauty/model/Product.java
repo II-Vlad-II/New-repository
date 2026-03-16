@@ -40,7 +40,7 @@ public class Product {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
 

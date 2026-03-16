@@ -1,33 +1,33 @@
 package com.vlad.healthbeauty.controller;
 
+import com.vlad.healthbeauty.dto.ProductDTO;
 import com.vlad.healthbeauty.model.Product;
 import com.vlad.healthbeauty.service.ProductService;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
 
     private final ProductService productService;
-    private final Validator validator;
 
-    public ProductController(ProductService productService, Validator validator) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
-        this.validator = validator;
     }
 
     @GetMapping
     public ResponseEntity<List<Product>> findAll() {
         return ResponseEntity.ok(productService.findAll());
+    }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<Product>> getLowStock(@RequestParam(defaultValue = "10") int threshold) {
+        return ResponseEntity.ok(productService.findLowStock(threshold));
     }
 
     @GetMapping("/{id}")
@@ -38,35 +38,17 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Product product) {
-        Set<ConstraintViolation<Product>> violations = validator.validate(product);
-        if (!violations.isEmpty()) {
-            Map<String, String> errors = violations.stream()
-                    .collect(Collectors.toMap(
-                            v -> v.getPropertyPath().toString(),
-                            ConstraintViolation::getMessage,
-                            (a, b) -> a));
-            return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
-        }
-        Product saved = productService.save(product);
+    public ResponseEntity<Product> create(@Valid @RequestBody ProductDTO productDTO) {
+        Product saved = productService.save(productDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Product product) {
+    public ResponseEntity<Product> update(@PathVariable Long id, @Valid @RequestBody ProductDTO productDTO) {
         if (productService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        Set<ConstraintViolation<Product>> violations = validator.validate(product);
-        if (!violations.isEmpty()) {
-            Map<String, String> errors = violations.stream()
-                    .collect(Collectors.toMap(
-                            v -> v.getPropertyPath().toString(),
-                            ConstraintViolation::getMessage,
-                            (a, b) -> a));
-            return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
-        }
-        Product saved = productService.save(product);
+        Product saved = productService.update(id, productDTO);
         return ResponseEntity.ok(saved);
     }
 
