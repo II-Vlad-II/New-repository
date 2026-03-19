@@ -5,11 +5,10 @@ spring:
   jackson:
     mapper:
       accept-case-insensitive-properties: true
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/health_beauty_inventory
-    username: postgres
-    password: 1995
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/health_beauty_inventory}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 20000
@@ -26,4 +25,13 @@ spring:
     open-in-view: false
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+
+unsplash:
+  access-key: ${UNSPLASH_ACCESS_KEY:}
+
+springdoc:
+  api-docs:
+    path: /api/v3/api-docs
+  swagger-ui:
+    path: /api/swagger-ui.html

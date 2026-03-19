@@ -1,6 +1,9 @@
 package com.vlad.healthbeauty.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -12,15 +15,21 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Supplier name is required")
+    @Size(max = 200, message = "Supplier name must be at most 200 characters")
     @Column(nullable = false, length = 200)
     private String name;
 
+    @Size(max = 100, message = "Contact name must be at most 100 characters")
     @Column(name = "contact_name", length = 100)
     private String contactName;
 
+    @Email(message = "Email format is invalid")
+    @Size(max = 100, message = "Email must be at most 100 characters")
     @Column(length = 100)
     private String email;
 
+    @Size(max = 50, message = "Phone must be at most 50 characters")
     @Column(length = 50)
     private String phone;
 

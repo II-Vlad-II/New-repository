@@ -34,6 +34,27 @@ public class ProductService {
         return productRepository.findByStockQuantityLessThan(threshold);
     }
 
+    public List<Product> findOutOfStock() {
+        return productRepository.findByStockQuantityEquals(0);
+    }
+
+    public List<ProductDTO> findOutOfStockDtos() {
+        return findOutOfStock().stream().map(this::toDto).toList();
+    }
+
+    public ProductDTO toDto(Product product) {
+        ProductDTO dto = new ProductDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setBrand(product.getBrand());
+        dto.setCategory(product.getCategory());
+        dto.setPrice(product.getPrice() != null ? product.getPrice().doubleValue() : 0);
+        dto.setQuantity(product.getStockQuantity());
+        dto.setSupplierId(product.getSupplier() != null ? product.getSupplier().getId() : null);
+        dto.setSupplierName(product.getSupplier() != null ? product.getSupplier().getName() : null);
+        return dto;
+    }
+
     public Product save(Product product) {
         return productRepository.save(product);
     }
@@ -41,9 +62,8 @@ public class ProductService {
     public Product save(ProductDTO productDTO) {
         Product product = mapDtoToProduct(productDTO);
         if (productDTO.getSupplierId() != null) {
-            Supplier supplier = supplierRepository.findById(productDTO.getSupplierId())
-                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
-            product.setSupplier(supplier);
+            supplierRepository.findById(productDTO.getSupplierId())
+                    .ifPresent(product::setSupplier);  // Only set if exists – no error
         }
         return productRepository.save(product);
     }
@@ -51,16 +71,38 @@ public class ProductService {
     public Product update(Long id, ProductDTO productDTO) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        product.setName(productDTO.getName());
-        product.setPrice(BigDecimal.valueOf(productDTO.getPrice()));
-        product.setStockQuantity(productDTO.getQuantity());
+
+        if (productDTO.getName() != null) {
+            product.setName(productDTO.getName());
+        }
+        if (productDTO.getBrand() != null) {
+            product.setBrand(productDTO.getBrand());
+        }
+        if (productDTO.getCategory() != null) {
+            product.setCategory(productDTO.getCategory());
+        }
+
+        if (productDTO.getPrice() > 0) {
+            product.setPrice(BigDecimal.valueOf(productDTO.getPrice()));
+        }
+
+        if (productDTO.getQuantity() >= 0) {
+            product.setStockQuantity(productDTO.getQuantity());
+        }
+
         if (productDTO.getSupplierId() != null) {
             Supplier supplier = supplierRepository.findById(productDTO.getSupplierId())
                     .orElseThrow(() -> new RuntimeException("Supplier not found"));
             product.setSupplier(supplier);
-        } else {
-            product.setSupplier(null);
         }
+
+        return productRepository.save(product);
+    }
+
+    public Product updateStock(Long id, int newQuantity) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setStockQuantity(newQuantity);
         return productRepository.save(product);
     }
 
@@ -71,6 +113,8 @@ public class ProductService {
     private static Product mapDtoToProduct(ProductDTO dto) {
         Product product = new Product();
         product.setName(dto.getName());
+        product.setBrand(dto.getBrand());
+        product.setCategory(dto.getCategory());
         product.setPrice(BigDecimal.valueOf(dto.getPrice()));
         product.setStockQuantity(dto.getQuantity());
         product.setLowStockThreshold(0);

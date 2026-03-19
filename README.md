@@ -1,4 +1,4 @@
-# Health & Beauty Inventory
+# README
 
 Spring Boot inventory management application for health and beauty products, with role-based access control, audit logging, PostgreSQL persistence, and Docker support.
 
@@ -132,4 +132,3 @@ Dockerfile
 - Change all default credentials before deployment.
 - Use environment variables for database and external API keys.
 - Prefer HTTPS and a stronger authentication model (for example JWT/OAuth2) for internet-facing deployments.
-

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByStockQuantityLessThan(int stockQuantity);
+    List<Product> findByStockQuantityEquals(int stockQuantity);
 }
