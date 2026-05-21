@@ -342,8 +342,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-2"><label class="form-label">Username</label><input id="regUsername" class="form-control" required></div>
+                <div class="mb-2"><label class="form-label">Full Name</label><input id="regFullName" class="form-control" placeholder="e.g. John Smith" required></div>
+                <div class="mb-2"><label class="form-label">Username</label><input id="regUsername" class="form-control" placeholder="e.g. john.smith" required></div>
                 <div class="mb-2"><label class="form-label">Password</label><input id="regPassword" type="password" class="form-control" required></div>
+                <div class="mb-2">
+                    <label class="form-label">Role</label>
+                    <select id="regRole" class="form-select" required>
+                        <option value="ROLE_SALES_ASSISTANT">Sales Assistant (view only)</option>
+                        <option value="ROLE_SUPERVISOR">Supervisor (add/edit products)</option>
+                        <option value="ROLE_MANAGER">Manager (full product access)</option>
+                        <option value="ROLE_ADMIN">Admin (full system access)</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -392,11 +402,12 @@
 
     function setAuth(user, pass) { authHeader = "Basic " + btoa(user + ":" + pass); currentUser = user; }
     function getHeaders() { const h = { "Content-Type": "application/json" }; if (authHeader) h["Authorization"] = authHeader; return h; }
-    function canEditProducts()  { return currentRole === "ADMIN" || currentRole === "STAFF"; }
-    function canDeleteProducts(){ return currentRole === "ADMIN"; }
-    function canAddProducts()   { return currentRole === "ADMIN"; }
+    function canEditProducts()  { return ["ADMIN", "MANAGER", "SUPERVISOR"].includes(currentRole); }
+    function canDeleteProducts(){ return ["ADMIN", "MANAGER"].includes(currentRole); }
+    function canAddProducts()   { return ["ADMIN", "MANAGER", "SUPERVISOR"].includes(currentRole); }
+    function canManageSuppliers() { return ["ADMIN", "MANAGER"].includes(currentRole); }
     function canRegisterUsers() { return currentRole === "ADMIN"; }
-    function canViewAuditLogs() { return currentRole === "ADMIN"; }
+    function canViewAuditLogs() { return ["ADMIN", "MANAGER"].includes(currentRole); }
     function escapeHtml(v) { return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 
     function stockStatus(qty) {
@@ -447,7 +458,7 @@
         const status = document.getElementById("loginStatus");
         status.innerHTML = "<i class='fa-solid fa-circle-check'></i>Logged in as " + escapeHtml(currentUser);
         document.getElementById("addProductBtn").style.display = canAddProducts() ? "inline-block" : "none";
-        document.getElementById("suppliersBtn").style.display = canAddProducts() ? "inline-block" : "none";
+        document.getElementById("suppliersBtn").style.display = canManageSuppliers() ? "inline-block" : "none";
         document.getElementById("registerBtn").style.display = canRegisterUsers() ? "inline-block" : "none";
         document.getElementById("auditSection").style.display = canViewAuditLogs() ? "block" : "none";
     }
@@ -686,12 +697,14 @@
     }
 
     function registerUser() {
+        const fullName = document.getElementById("regFullName").value.trim();
         const username = document.getElementById("regUsername").value.trim();
         const password = document.getElementById("regPassword").value;
-        if (!username || !password) { alert("Please fill username and password"); return; }
-        fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) })
+        const role = document.getElementById("regRole").value;
+        if (!fullName || !username || !password || !role) { alert("Please fill all fields"); return; }
+        fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fullName, username, password, role }) })
             .then(r => {
-                if (r.ok) { alert("User registered successfully."); bootstrap.Modal.getInstance(document.getElementById("registerModal")).hide(); }
+                if (r.ok) { alert("User registered successfully."); bootstrap.Modal.getInstance(document.getElementById("registerModal")).hide(); document.getElementById("regFullName").value = ""; document.getElementById("regUsername").value = ""; document.getElementById("regPassword").value = ""; }
                 else r.text().then(t => alert("Error registering user: " + t));
             }).catch(err => alert("Network error: " + err));
     }
