@@ -10,7 +10,7 @@ Spring Boot inventory management application for health and beauty products, wit
 - HTTP Basic authentication with BCrypt password hashing
 - Audit logs for critical actions
 - OpenAPI/Swagger documentation
-- Dockerized app + PostgreSQL setup
+- Dockerised app + PostgreSQL setup
 
 ## Tech Stack
 
