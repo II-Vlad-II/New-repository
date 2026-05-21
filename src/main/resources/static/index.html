@@ -67,6 +67,64 @@
         .surface-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.2px; }
         .surface-body { padding: 8px 12px 12px; }
 
+        /* ---------- SCROLLABLE TABLE CONTAINER ---------- */
+        #allProductsContainer {
+            max-height: 550px;
+            overflow-y: auto;
+        }
+        #allProductsContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+        #allProductsContainer::-webkit-scrollbar-track {
+            background: rgba(15, 35, 58, 0.4);
+            border-radius: 4px;
+        }
+        #allProductsContainer::-webkit-scrollbar-thumb {
+            background: rgba(37, 194, 240, 0.4);
+            border-radius: 4px;
+        }
+        #allProductsContainer::-webkit-scrollbar-thumb:hover {
+            background: rgba(37, 194, 240, 0.6);
+        }
+
+        #lowStockContainer {
+            max-height: 550px;
+            overflow-y: auto;
+        }
+        #lowStockContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+        #lowStockContainer::-webkit-scrollbar-track {
+            background: rgba(15, 35, 58, 0.4);
+            border-radius: 4px;
+        }
+        #lowStockContainer::-webkit-scrollbar-thumb {
+            background: rgba(37, 194, 240, 0.4);
+            border-radius: 4px;
+        }
+        #lowStockContainer::-webkit-scrollbar-thumb:hover {
+            background: rgba(37, 194, 240, 0.6);
+        }
+
+        #auditLogsContainer {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #auditLogsContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+        #auditLogsContainer::-webkit-scrollbar-track {
+            background: rgba(15, 35, 58, 0.4);
+            border-radius: 4px;
+        }
+        #auditLogsContainer::-webkit-scrollbar-thumb {
+            background: rgba(37, 194, 240, 0.4);
+            border-radius: 4px;
+        }
+        #auditLogsContainer::-webkit-scrollbar-thumb:hover {
+            background: rgba(37, 194, 240, 0.6);
+        }
+
         /* ---------- TABLES (restored to original) ---------- */
         .table { color: #dbe8f5; margin-bottom: 0; }
         .table > :not(caption) > * > * { border-bottom-color: rgba(139, 169, 193, 0.18); }
@@ -200,9 +258,11 @@
                 </div>
             </div>
             <div class="toolbar-right">
+                <input id="searchInput" type="text" class="form-control form-control-sm glass-input" placeholder="Search products..." style="max-width: 200px;" oninput="filterProducts()">
                 <button class="btn btn-outline-light btn-sm btn-action" onclick="logout()"><i class="fa-solid fa-right-from-bracket me-1"></i>Logout</button>
                 <button class="btn btn-outline-info btn-sm btn-action" onclick="refreshLists()"><i class="fas fa-arrows-rotate me-1"></i>Refresh</button>
                 <button class="btn btn-primary btn-sm btn-action" onclick="showProductModal()" id="addProductBtn"><i class="fas fa-plus me-1"></i>Add Product</button>
+                <button id="suppliersBtn" class="btn btn-outline-secondary btn-sm btn-action" onclick="showSuppliersModal()" style="display:none;"><i class="fa-solid fa-truck me-1"></i>Suppliers</button>
                 <button id="registerBtn" class="btn btn-outline-warning btn-sm btn-action" onclick="showRegisterModal()" style="display:none;"><i class="fa-solid fa-user-plus me-1"></i>Register</button>
             </div>
         </div>
@@ -293,6 +353,37 @@
     </div>
 </div>
 
+<div class="modal fade" id="suppliersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Manage Suppliers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6>Add New Supplier</h6>
+                    <div class="input-group">
+                        <input id="newSupplierName" class="form-control" placeholder="Supplier name" required>
+                        <button class="btn btn-primary" onclick="addSupplier()"><i class="fas fa-plus me-1"></i>Add</button>
+                    </div>
+                </div>
+                <hr>
+                <h6>Existing Suppliers</h6>
+                <div id="suppliersListContainer" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm">
+                        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+                        <tbody id="suppliersList"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     let authHeader = null;
@@ -356,6 +447,7 @@
         const status = document.getElementById("loginStatus");
         status.innerHTML = "<i class='fa-solid fa-circle-check'></i>Logged in as " + escapeHtml(currentUser);
         document.getElementById("addProductBtn").style.display = canAddProducts() ? "inline-block" : "none";
+        document.getElementById("suppliersBtn").style.display = canAddProducts() ? "inline-block" : "none";
         document.getElementById("registerBtn").style.display = canRegisterUsers() ? "inline-block" : "none";
         document.getElementById("auditSection").style.display = canViewAuditLogs() ? "block" : "none";
     }
@@ -389,8 +481,33 @@
     function logout() { authHeader = null; currentUser = null; currentRole = "GUEST"; showLoginScreen(); }
     function refreshLists() { loadAllProducts(); loadLowStock(); loadAuditLogs(); }
 
+    function filterProducts() {
+        const searchInput = document.getElementById("searchInput").value.toLowerCase();
+        const table = document.getElementById("allProductsTable");
+        if (!table) return;
+        const tbody = table.querySelector("tbody");
+        if (!tbody) return;
+        const rows = tbody.getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const nameCell = row.getElementsByTagName("td")[0];
+            if (nameCell) {
+                const productName = nameCell.textContent || nameCell.innerText;
+                if (productName.toLowerCase().indexOf(searchInput) > -1) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            }
+        }
+    }
+
     function loadAllProducts() {
         const container = document.getElementById("allProductsContainer");
+        const searchInput = document.getElementById("searchInput");
+        if (searchInput) searchInput.value = ""; // Clear search on refresh
+
         fetch("/api/products", { headers: getHeaders() })
             .then(r => r.json())
             .then(products => {
@@ -576,6 +693,51 @@
             .then(r => {
                 if (r.ok) { alert("User registered successfully."); bootstrap.Modal.getInstance(document.getElementById("registerModal")).hide(); }
                 else r.text().then(t => alert("Error registering user: " + t));
+            }).catch(err => alert("Network error: " + err));
+    }
+
+    function showSuppliersModal() {
+        loadSuppliers();
+        const modal = new bootstrap.Modal(document.getElementById("suppliersModal"));
+        modal.show();
+    }
+
+    function loadSuppliers() {
+        fetch("/api/suppliers", { headers: getHeaders() })
+            .then(r => r.json())
+            .then(suppliers => {
+                const tbody = document.getElementById("suppliersList");
+                tbody.innerHTML = "";
+                if (!suppliers.length) {
+                    tbody.innerHTML = "<tr><td colspan='2' class='text-center text-muted'>No suppliers yet</td></tr>";
+                    return;
+                }
+                suppliers.forEach(s => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = "<td>" + s.id + "</td><td>" + escapeHtml(s.name) + "</td>";
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(() => alert("Error loading suppliers"));
+    }
+
+    function addSupplier() {
+        if (!authHeader) { alert("You must be logged in."); return; }
+        const name = document.getElementById("newSupplierName").value.trim();
+        if (!name) { alert("Please enter supplier name"); return; }
+        fetch("/api/suppliers", {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ name: name })
+        })
+            .then(r => {
+                if (r.ok) {
+                    document.getElementById("newSupplierName").value = "";
+                    loadSuppliers();
+                    alert("Supplier added successfully");
+                } else {
+                    r.text().then(t => alert("Error adding supplier: " + t));
+                }
             }).catch(err => alert("Network error: " + err));
     }
 
