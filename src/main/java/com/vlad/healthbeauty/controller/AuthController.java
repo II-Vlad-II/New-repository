@@ -48,7 +48,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Register new user", description = "Access: Public. Assigns ROLE_USER by default.")
+    @Operation(summary = "Register new user", description = "Access: Public. Assigns specified role (ROLE_ADMIN or ROLE_STAFF).")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username already exists");
@@ -57,11 +57,15 @@ public class AuthController {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Auto hash!
+        user.setFullName(request.getFullName());
 
-        // Give default role: ROLE_USER
-        Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
+        // Assign the specified role (default to ROLE_STAFF if not provided)
+        String roleName = request.getRole() != null ? request.getRole() : "ROLE_STAFF";
+        Optional<Role> userRole = roleRepository.findByName(roleName);
         if (userRole.isPresent()) {
             user.setRoles(Collections.singleton(userRole.get()));
+        } else {
+            return ResponseEntity.badRequest().body("Invalid role specified");
         }
 
         userRepository.save(user);
@@ -72,11 +76,17 @@ public class AuthController {
     static class RegisterRequest {
         private String username;
         private String password;
+        private String fullName;
+        private String role;
 
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+        public String getFullName() { return fullName; }
+        public void setFullName(String fullName) { this.fullName = fullName; }
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
     }
 }
 

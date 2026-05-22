@@ -25,15 +25,15 @@ public class SupplierController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @Operation(summary = "Get all suppliers", description = "Access: ROLE_ADMIN or ROLE_STAFF")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get all suppliers", description = "Access: ROLE_ADMIN, ROLE_MANAGER")
     public ResponseEntity<List<Supplier>> findAll() {
         return ResponseEntity.ok(supplierService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @Operation(summary = "Get supplier by id", description = "Access: ROLE_ADMIN or ROLE_STAFF")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get supplier by id", description = "Access: ROLE_ADMIN, ROLE_MANAGER")
     public ResponseEntity<Supplier> findById(@PathVariable Long id) {
         return supplierService.findById(id)
                 .map(ResponseEntity::ok)
@@ -41,8 +41,8 @@ public class SupplierController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create supplier", description = "Access: ROLE_ADMIN")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Create supplier", description = "Access: ROLE_ADMIN, ROLE_MANAGER")
     public ResponseEntity<Supplier> create(@Valid @RequestBody Supplier supplier) {
         Supplier saved = supplierService.save(supplier);
         auditLogService.log(
@@ -55,8 +55,8 @@ public class SupplierController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update supplier", description = "Access: ROLE_ADMIN")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Update supplier", description = "Access: ROLE_ADMIN, ROLE_MANAGER")
     public ResponseEntity<Supplier> update(@PathVariable Long id, @Valid @RequestBody Supplier supplier) {
         if (supplierService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -74,8 +74,8 @@ public class SupplierController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Delete supplier", description = "Access: ROLE_ADMIN")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Delete supplier", description = "Access: ROLE_ADMIN, ROLE_MANAGER")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         var existing = supplierService.findById(id);
         if (existing.isEmpty()) {

@@ -21,8 +21,8 @@ public class AuditLogController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get recent audit logs", description = "Access: ROLE_ADMIN. Returns latest 200 critical action logs.")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get recent audit logs", description = "Access: ROLE_ADMIN and ROLE_MANAGER. Returns latest 200 critical action logs.")
     public List<AuditLog> getRecentLogs() {
         return auditLogService.getRecentLogs();
     }

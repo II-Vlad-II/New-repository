@@ -22,6 +22,9 @@ public class User {
     private String password;
 
     @Column(nullable = false)
+    private String fullName;
+
+    @Column(nullable = false)
     private boolean enabled = true;
 
     @ManyToMany(fetch = FetchType.EAGER)

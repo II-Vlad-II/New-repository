@@ -46,8 +46,8 @@ public class ProductController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create product", description = "Access: ROLE_ADMIN")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERVISOR')")
+    @Operation(summary = "Create product", description = "Access: ROLE_ADMIN, ROLE_MANAGER, ROLE_SUPERVISOR")
     public ResponseEntity<Product> create(@Valid @RequestBody ProductDTO productDTO) {
         Product saved = productService.save(productDTO);
         auditLogService.log(
@@ -60,8 +60,8 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @Operation(summary = "Update product", description = "Access: ROLE_ADMIN or ROLE_STAFF")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERVISOR')")
+    @Operation(summary = "Update product", description = "Access: ROLE_ADMIN, ROLE_MANAGER, ROLE_SUPERVISOR")
     public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody ProductDTO productDTO) {
         try {
             Product updated = productService.update(id, productDTO);
@@ -78,8 +78,8 @@ public class ProductController {
     }
 
     @PutMapping("/{id}/update-stock")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @Operation(summary = "Update product stock", description = "Access: ROLE_ADMIN or ROLE_STAFF")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERVISOR')")
+    @Operation(summary = "Update product stock", description = "Access: ROLE_ADMIN, ROLE_MANAGER, ROLE_SUPERVISOR")
     public ResponseEntity<Product> updateStock(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
         int newQuantity = body.get("quantity");
         Product updated = productService.updateStock(id, newQuantity);
@@ -93,8 +93,8 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Delete product", description = "Access: ROLE_ADMIN")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Delete product", description = "Access: ROLE_ADMIN, ROLE_MANAGER")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         var existing = productService.findById(id);
         if (existing.isEmpty()) {

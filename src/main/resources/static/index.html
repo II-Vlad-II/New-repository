@@ -301,7 +301,7 @@
                 <section class="surface">
                     <div class="surface-header">
                         <h2><i class="fa-solid fa-shield-halved me-2"></i>Audit Logs</h2>
-                        <small class="text-muted-soft">Admin only: who changed what and when</small>
+                        <small class="text-muted-soft">Track who changed what and when</small>
                     </div>
                     <div class="surface-body">
                         <div id="auditLogsContainer"></div>
@@ -456,7 +456,14 @@
 
     function updateLoggedInUI() {
         const status = document.getElementById("loginStatus");
-        status.innerHTML = "<i class='fa-solid fa-circle-check'></i>Logged in as " + escapeHtml(currentUser);
+        const roleNames = {
+            "ADMIN": "Admin",
+            "MANAGER": "Manager",
+            "SUPERVISOR": "Supervisor",
+            "SALES_ASSISTANT": "Sales Assistant"
+        };
+        const roleName = roleNames[currentRole] || currentRole;
+        status.innerHTML = "<i class='fa-solid fa-circle-check'></i>Logged in as " + escapeHtml(currentUser) + " <span style='opacity: 0.7'>(" + roleName + ")</span>";
         document.getElementById("addProductBtn").style.display = canAddProducts() ? "inline-block" : "none";
         document.getElementById("suppliersBtn").style.display = canManageSuppliers() ? "inline-block" : "none";
         document.getElementById("registerBtn").style.display = canRegisterUsers() ? "inline-block" : "none";
@@ -478,7 +485,9 @@
             currentUser = data.username || user;
             const roles = Array.isArray(data.roles) ? data.roles : [];
             if (roles.includes("ROLE_ADMIN")) currentRole = "ADMIN";
-            else if (roles.includes("ROLE_STAFF")) currentRole = "STAFF";
+            else if (roles.includes("ROLE_MANAGER")) currentRole = "MANAGER";
+            else if (roles.includes("ROLE_SUPERVISOR")) currentRole = "SUPERVISOR";
+            else if (roles.includes("ROLE_SALES_ASSISTANT")) currentRole = "SALES_ASSISTANT";
             else currentRole = "USER";
             updateLoggedInUI();
             showDashboard();
@@ -702,7 +711,7 @@
         const password = document.getElementById("regPassword").value;
         const role = document.getElementById("regRole").value;
         if (!fullName || !username || !password || !role) { alert("Please fill all fields"); return; }
-        fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fullName, username, password, role }) })
+        fetch("/api/auth/register", { method: "POST", headers: getHeaders(), body: JSON.stringify({ fullName, username, password, role }) })
             .then(r => {
                 if (r.ok) { alert("User registered successfully."); bootstrap.Modal.getInstance(document.getElementById("registerModal")).hide(); document.getElementById("regFullName").value = ""; document.getElementById("regUsername").value = ""; document.getElementById("regPassword").value = ""; }
                 else r.text().then(t => alert("Error registering user: " + t));

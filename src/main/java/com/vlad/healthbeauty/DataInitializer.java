@@ -34,10 +34,24 @@ public class DataInitializer {
                         return roleRepo.save(r);
                     });
 
-            Role staffRole = roleRepo.findByName("ROLE_STAFF")
+            Role managerRole = roleRepo.findByName("ROLE_MANAGER")
                     .orElseGet(() -> {
                         Role r = new Role();
-                        r.setName("ROLE_STAFF");
+                        r.setName("ROLE_MANAGER");
+                        return roleRepo.save(r);
+                    });
+
+            Role supervisorRole = roleRepo.findByName("ROLE_SUPERVISOR")
+                    .orElseGet(() -> {
+                        Role r = new Role();
+                        r.setName("ROLE_SUPERVISOR");
+                        return roleRepo.save(r);
+                    });
+
+            Role salesAssistantRole = roleRepo.findByName("ROLE_SALES_ASSISTANT")
+                    .orElseGet(() -> {
+                        Role r = new Role();
+                        r.setName("ROLE_SALES_ASSISTANT");
                         return roleRepo.save(r);
                     });
 
@@ -45,16 +59,36 @@ public class DataInitializer {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("admin123"));
+                admin.setFullName("System Administrator");
                 admin.setRoles(Set.of(adminRole));
                 userRepo.save(admin);
             }
 
-            if (userRepo.findByUsername("staff").isEmpty()) {
-                User staff = new User();
-                staff.setUsername("staff");
-                staff.setPassword(passwordEncoder.encode("staff123"));
-                staff.setRoles(Set.of(staffRole));
-                userRepo.save(staff);
+            if (userRepo.findByUsername("manager").isEmpty()) {
+                User manager = new User();
+                manager.setUsername("manager");
+                manager.setPassword(passwordEncoder.encode("manager123"));
+                manager.setFullName("Store Manager");
+                manager.setRoles(Set.of(managerRole));
+                userRepo.save(manager);
+            }
+
+            if (userRepo.findByUsername("supervisor").isEmpty()) {
+                User supervisor = new User();
+                supervisor.setUsername("supervisor");
+                supervisor.setPassword(passwordEncoder.encode("supervisor123"));
+                supervisor.setFullName("Floor Supervisor");
+                supervisor.setRoles(Set.of(supervisorRole));
+                userRepo.save(supervisor);
+            }
+
+            if (userRepo.findByUsername("sales").isEmpty()) {
+                User sales = new User();
+                sales.setUsername("sales");
+                sales.setPassword(passwordEncoder.encode("sales123"));
+                sales.setFullName("Sales Assistant");
+                sales.setRoles(Set.of(salesAssistantRole));
+                userRepo.save(sales);
             }
 
             List<Supplier> suppliers = new ArrayList<>();
