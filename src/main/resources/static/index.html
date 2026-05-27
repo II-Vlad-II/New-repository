@@ -383,13 +383,34 @@
                 <h6>Existing Suppliers</h6>
                 <div id="suppliersListContainer" style="max-height: 300px; overflow-y: auto;">
                     <table class="table table-sm">
-                        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+                        <thead><tr><th>ID</th><th>Name</th><th>Actions</th></tr></thead>
                         <tbody id="suppliersList"></tbody>
                     </table>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Edit Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">Supplier Name</label>
+                    <input id="editSupplierName" class="form-control" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="backToSuppliers()"><i class="fas fa-arrow-left me-1"></i>Back</button>
+                <button class="btn btn-warning" onclick="saveSupplierChanges()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -448,7 +469,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-secondary" onclick="backToUsers()"><i class="fas fa-arrow-left me-1"></i>Back</button>
                 <button class="btn btn-warning" onclick="saveUserChanges()">Save Changes</button>
             </div>
         </div>
@@ -793,12 +814,32 @@
                 const tbody = document.getElementById("suppliersList");
                 tbody.innerHTML = "";
                 if (!suppliers.length) {
-                    tbody.innerHTML = "<tr><td colspan='2' class='text-center text-muted'>No suppliers yet</td></tr>";
+                    tbody.innerHTML = "<tr><td colspan='3' class='text-center text-muted'>No suppliers yet</td></tr>";
                     return;
                 }
                 suppliers.forEach(s => {
                     const tr = document.createElement("tr");
-                    tr.innerHTML = "<td>" + s.id + "</td><td>" + escapeHtml(s.name) + "</td>";
+                    const tdId = document.createElement("td");
+                    tdId.textContent = s.id;
+                    const tdName = document.createElement("td");
+                    tdName.textContent = s.name;
+                    const tdActions = document.createElement("td");
+
+                    const editBtn = document.createElement("button");
+                    editBtn.className = "btn btn-sm btn-warning me-1";
+                    editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                    editBtn.addEventListener("click", () => editSupplier(s.id, s.name));
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.className = "btn btn-sm btn-danger";
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                    deleteBtn.addEventListener("click", () => deleteSupplier(s.id, s.name));
+
+                    tdActions.appendChild(editBtn);
+                    tdActions.appendChild(deleteBtn);
+                    tr.appendChild(tdId);
+                    tr.appendChild(tdName);
+                    tr.appendChild(tdActions);
                     tbody.appendChild(tr);
                 });
             })
@@ -823,6 +864,63 @@
                     r.text().then(t => alert("Error adding supplier: " + t));
                 }
             }).catch(err => alert("Network error: " + err));
+    }
+
+    let currentEditSupplierId = null;
+
+    function editSupplier(id, name) {
+        currentEditSupplierId = id;
+        document.getElementById("editSupplierName").value = name;
+        bootstrap.Modal.getInstance(document.getElementById("suppliersModal")).hide();
+        const editModal = new bootstrap.Modal(document.getElementById("editSupplierModal"));
+        editModal.show();
+    }
+
+    function backToSuppliers() {
+        bootstrap.Modal.getInstance(document.getElementById("editSupplierModal")).hide();
+        showSuppliersModal();
+    }
+
+    function saveSupplierChanges() {
+        if (!currentEditSupplierId) return;
+        const name = document.getElementById("editSupplierName").value.trim();
+        if (!name) { alert("Please enter supplier name"); return; }
+
+        fetch(`/api/suppliers/${currentEditSupplierId}`, {
+            method: "PUT",
+            headers: getHeaders(),
+            body: JSON.stringify({ name: name })
+        })
+            .then(r => {
+                if (r.ok) {
+                    alert("Supplier updated successfully");
+                    bootstrap.Modal.getInstance(document.getElementById("editSupplierModal")).hide();
+                    showSuppliersModal();
+                } else {
+                    r.text().then(t => alert("Error updating supplier: " + t));
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    }
+
+    function deleteSupplier(id, name) {
+        if (!confirm(`Are you sure you want to delete supplier "${name}"? Products linked to this supplier may be affected.`)) {
+            return;
+        }
+
+        fetch(`/api/suppliers/${id}`, {
+            method: "DELETE",
+            headers: getHeaders()
+        })
+            .then(r => {
+                if (r.ok) {
+                    alert("Supplier deleted successfully");
+                    loadSuppliers();
+                } else {
+                    r.text().then(t => alert("Error deleting supplier: " + t));
+                }
+            })
+            .catch(err => alert("Network error: " + err));
     }
 
     let currentEditUserId = null;
@@ -850,20 +948,33 @@
                     ).join(" ");
 
                     const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td>${u.id}</td>
-                        <td>${escapeHtml(u.fullName)}</td>
-                        <td>${escapeHtml(u.username)}</td>
-                        <td><span class="badge bg-primary">${roleDisplay}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" onclick="editUser(${u.id}, '${escapeHtml(u.fullName)}', '${escapeHtml(u.username)}', '${u.role}')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id}, '${escapeHtml(u.fullName)}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </td>
-                    `;
+                    const tdId = document.createElement("td");
+                    tdId.textContent = u.id;
+                    const tdName = document.createElement("td");
+                    tdName.textContent = u.fullName;
+                    const tdUsername = document.createElement("td");
+                    tdUsername.textContent = u.username;
+                    const tdRole = document.createElement("td");
+                    tdRole.innerHTML = `<span class="badge bg-primary">${roleDisplay}</span>`;
+                    const tdActions = document.createElement("td");
+
+                    const editBtn = document.createElement("button");
+                    editBtn.className = "btn btn-sm btn-warning me-1";
+                    editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                    editBtn.addEventListener("click", () => editUser(u.id, u.fullName, u.username, u.role));
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.className = "btn btn-sm btn-danger";
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                    deleteBtn.addEventListener("click", () => deleteUser(u.id, u.fullName));
+
+                    tdActions.appendChild(editBtn);
+                    tdActions.appendChild(deleteBtn);
+                    tr.appendChild(tdId);
+                    tr.appendChild(tdName);
+                    tr.appendChild(tdUsername);
+                    tr.appendChild(tdRole);
+                    tr.appendChild(tdActions);
                     tbody.appendChild(tr);
                 });
             })
@@ -880,6 +991,11 @@
         bootstrap.Modal.getInstance(document.getElementById("usersModal")).hide();
         const editModal = new bootstrap.Modal(document.getElementById("editUserModal"));
         editModal.show();
+    }
+
+    function backToUsers() {
+        bootstrap.Modal.getInstance(document.getElementById("editUserModal")).hide();
+        showUsersModal();
     }
 
     function saveUserChanges() {
