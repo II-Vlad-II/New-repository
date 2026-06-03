@@ -59,7 +59,7 @@ public class DataInitializer {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("admin123"));
-                admin.setFullName("System Administrator");
+                admin.setFullName("Vlad");
                 admin.setRoles(Set.of(adminRole));
                 userRepo.save(admin);
             }
@@ -68,7 +68,7 @@ public class DataInitializer {
                 User manager = new User();
                 manager.setUsername("manager");
                 manager.setPassword(passwordEncoder.encode("manager123"));
-                manager.setFullName("Store Manager");
+                manager.setFullName("Gladys");
                 manager.setRoles(Set.of(managerRole));
                 userRepo.save(manager);
             }
@@ -77,7 +77,7 @@ public class DataInitializer {
                 User supervisor = new User();
                 supervisor.setUsername("supervisor");
                 supervisor.setPassword(passwordEncoder.encode("supervisor123"));
-                supervisor.setFullName("Floor Supervisor");
+                supervisor.setFullName("Heyden");
                 supervisor.setRoles(Set.of(supervisorRole));
                 userRepo.save(supervisor);
             }
@@ -86,7 +86,7 @@ public class DataInitializer {
                 User sales = new User();
                 sales.setUsername("sales");
                 sales.setPassword(passwordEncoder.encode("sales123"));
-                sales.setFullName("Sales Assistant");
+                sales.setFullName("Sam");
                 sales.setRoles(Set.of(salesAssistantRole));
                 userRepo.save(sales);
             }
