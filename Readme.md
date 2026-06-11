@@ -101,7 +101,7 @@ Only use this in an emergency to force stop. Note: this does NOT shut down the c
 ```bash
 docker compose down -v
 ```
-Use this ONLY if you get errors when starting the app. Warning: this also deletes all the database data so everything resets back to the default seed data.
+Use this ONLY if you get errors when starting the app. This removes the containers and clears the database. Any data you added manually (new products, suppliers, users) will be lost. The default accounts and seed data will be recreated automatically on next startup.
 
 ```bash
 docker rm -f health_beauty_postgres
