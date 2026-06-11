@@ -89,14 +89,19 @@ docker compose up --build
 Starts the application. Use this every time you want to run the project.
 
 ```bash
+docker compose down
+```
+Stops the application and removes the containers properly. Use this every time you want to stop the project.
+
+```bash
 Ctrl + C
 ```
-Stops the application gracefully. Press this in the terminal where Docker is running.
+Only use this in an emergency to force stop. Note: this does NOT shut down the containers properly and may cause a "container already in use" error next time you start the app. If this happens run `docker compose down -v` to fix it.
 
 ```bash
 docker compose down -v
 ```
-Fully removes the containers and database data. Use this if you get errors when starting the app.
+Use this ONLY if you get errors when starting the app. Warning: this also deletes all the database data so everything resets back to the default seed data.
 
 ```bash
 docker rm -f health_beauty_postgres
