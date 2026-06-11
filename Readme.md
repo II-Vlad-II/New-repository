@@ -54,23 +54,55 @@ On startup, the app automatically creates:
   - `Vitamin C Day Cream`
   - `Repair Hair Mask`
 
+
 ## Run with Docker (Recommended)
+
+### Step 1 — Install Docker Desktop
+
+Download and install Docker Desktop from: https://www.docker.com/products/docker-desktop
+
+- Available for Windows and Mac
+- Free to download
+- No other software needed
+
+### Step 2 — Download the Project
+
+Download this repository as a ZIP from GitHub and extract it to your computer.
+
+### Step 3 — Start the Application
+
+Open a terminal in the project folder and run:
 
 ```bash
 docker compose up --build
 ```
 
-Services:
+This command builds the application and starts everything automatically (the app and the database). Wait 1-2 minutes for it to finish. The app is ready when you see "Started HealthBeautyInventoryApplication".
 
-- App: `http://localhost:8080`
-- PostgreSQL: `localhost:5432`
+Once running, open your browser and go to: `http://localhost:8080`
 
-Useful commands:
+## Useful Commands
+
+```bash
+docker compose up --build
+```
+Starts the application. Use this every time you want to run the project.
+
+```bash
+Ctrl + C
+```
+Stops the application gracefully. Press this in the terminal where Docker is running.
 
 ```bash
 docker compose down -v
-docker compose up --build
 ```
+Fully removes the containers and database data. Use this if you get errors when starting the app.
+
+```bash
+docker rm -f health_beauty_postgres
+docker rm -f health_beauty_app
+```
+Force removes stuck containers. Use this if you get a "container name already in use" error.
 
 ## API Documentation
 
